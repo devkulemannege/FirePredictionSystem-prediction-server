@@ -1,7 +1,10 @@
 from flask import Flask, jsonify, request
+from flask_limiter import Limiter
 import dotenv
-import base64
 import os
+
+from modules.request_queue import request_queue
+from modules import worker
 
 # load env variables
 dotenv.load_dotenv()
@@ -11,9 +14,20 @@ API_PSW = os.getenv('API_PSW')
 
 app = Flask(__name__)
 
+def get_email():
+    payload = request.json
+    return payload['email']
+
+limiter = Limiter(
+    app=app,
+    key_func=get_email,
+    default_limits=['10 per day']
+)
+
 @app.route('/')
-def index():
-    return jsonify({'operational_status':'ok'})
+@limiter.exempt
+def health_check():
+    return jsonify({'operational_status':'ok'}), 200
 
 @app.route('/transfer', methods=['POST'])
 def transfer():
@@ -23,9 +37,9 @@ def transfer():
     if authValue:
         if API_USR == authValue.username and API_PSW == authValue.password:
             payload = request.json
-            # TODO: continue functionality 
+            # TODO: add to queue and call worker function
 
-            return jsonify({'status':'success'}), 200
+            return jsonify({'status':'ok'}), 200
         else:
             return jsonify({'status':'unauthorized'}), 401
     else:

@@ -1,3 +1,6 @@
 flask
 flask_limiter
 dotenv
+scikit-learn
+pandas
+pickle

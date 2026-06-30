@@ -4,3 +4,7 @@ dotenv
 scikit-learn
 pandas
 pickle
+shutil
+threading
+requests
+time

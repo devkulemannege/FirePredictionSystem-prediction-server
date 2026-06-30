@@ -3,9 +3,5 @@ flask_limiter
 dotenv
 scikit-learn
 pandas
-pickle
-threading
 requests
-time
 gunicorn
-shutil

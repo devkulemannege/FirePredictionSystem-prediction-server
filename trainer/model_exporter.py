@@ -4,7 +4,7 @@ from sklearn.linear_model import LogisticRegression
 
 df = pd.read_csv('model/training_dataset.csv')
 
-xFeature = df[['lst','sur_refl','ndvi','month']] # extract all rows with features as x
+xFeature = df[['lst','sur_refl','ndvi','month']] # extract all rows under feature cols as x
 yPredicted = df['fire'] # extract all rows with "fire" col for x
 
 model = LogisticRegression()

@@ -7,7 +7,7 @@ class Node:
         self.next = None # next node pointer
 
 class request_queue:
-    ''' queue which handles requests '''
+    ''' queue data structure which handles requests '''
     def __init__(self):
         self.front = None
         self.rear = None
@@ -40,5 +40,3 @@ class request_queue:
     
     def isEmpty(self):
         return self.front is None
-
-        

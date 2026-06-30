@@ -13,6 +13,7 @@ API_USR = os.getenv('API_USR')
 API_PSW = os.getenv('API_PSW')
 
 app = Flask(__name__)
+queue = request_queue() # create queue object 
 
 def get_email():
     payload = request.json
@@ -27,7 +28,7 @@ limiter = Limiter(
 @app.route('/')
 @limiter.exempt
 def health_check():
-    return jsonify({'operational_status':'ok'}), 200
+    return jsonify({'status':'ok'}), 200
 
 @app.route('/transfer', methods=['POST'])
 def transfer():
@@ -37,7 +38,11 @@ def transfer():
     if authValue:
         if API_USR == authValue.username and API_PSW == authValue.password:
             payload = request.json
-            # TODO: add to queue and call worker function
+            
+            # enqueue request 
+            queue.enqueue(payload['taskId'], payload['token'], payload['email'])
+            print(f'{payload['email']} | request added to queue')
+            worker.start_worker(queue) # send queue ref to worker function
 
             return jsonify({'status':'ok'}), 200
         else:

@@ -1,3 +1,7 @@
+'''
+This script will not be used in production.
+'''
+
 import pickle
 import pandas as pd
 from sklearn.linear_model import LogisticRegression

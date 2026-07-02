@@ -43,7 +43,7 @@ def retrieve_data(queue):
             with open(filepath, 'wb') as f: # Write file to dest dir
                 for data in dl.iter_content(chunk_size=8192): f.write(data) 
 
-        #if os.path.exists(destDir): shutil.rmtree(destDir) # remove directory after process 
+        if os.path.exists(destDir): shutil.rmtree(destDir) # remove directory after process 
     
     WORKING = False
     return

@@ -1,5 +1,6 @@
 import threading
 import requests as r
+import traceback
 import shutil
 import time
 import os
@@ -9,7 +10,7 @@ from . import prediction_worker, error_mail
 WORKING = False # global working indicator variable
 api = 'https://appeears.earthdatacloud.nasa.gov/api/' # AppEEARS api url
 
-def retrieve_data(queue, mail, app):
+def retrieve_data(queue, app):
     ''' internal process of server. check status of point request and retreive data from AppEEARS and generate predictions. 
     code from https://github.com/nasa/AppEEARS-Data-Resources/blob/main/Python/tutorials/AppEEARS_API_Point.ipynb '''
     global WORKING
@@ -37,8 +38,9 @@ def retrieve_data(queue, mail, app):
                 else:
                     os.mkdir(destDir)
             except Exception as e:
-                print(f'Failed to prepare data directory for {payload.email} | {e}')
-                error_mail.send(payload.email, mail) # error mail incase main process fails
+                print(f'\n--Failed to prepare data directory for {payload.email} | {e}--')
+                traceback.print_exc() # print traceback for debugging
+                error_mail.send(payload.email) # error mail incase main process fails
 
                 WORKING = False
                 return
@@ -59,21 +61,22 @@ def retrieve_data(queue, mail, app):
                     with open(filepath, 'wb') as f: # Write file to dest dir
                         for data in dl.iter_content(chunk_size=8192): f.write(data) 
             except Exception as e:
-                print(f'Failed to retreive data from AppEEARS for {payload.email} | {e}')
-                error_mail.send(payload.email, mail) # error mail incase main process fails
+                print(f'\n--Failed to retreive data from AppEEARS for {payload.email} | {e}--')
+                traceback.print_exc() # print traceback for debugging
+                error_mail.send(payload.email) # error mail incase main process fails
 
                 WORKING = False
                 return 
 
             # start prediction and mail process
-            prediction_worker.start(payload.email, mail) 
+            prediction_worker.start(payload.email) 
 
             if os.path.exists(destDir): shutil.rmtree(destDir) # remove directory after process 
     
     WORKING = False
     return
 
-def start_worker(queue, mail, app):
+def start_worker(queue, app):
     ''' return if worker is already working '''
     global WORKING
 
@@ -84,12 +87,13 @@ def start_worker(queue, mail, app):
     try:
         threading.Thread(
             target=retrieve_data, 
-            args=(queue, mail, app,), 
+            args=(queue, app,), 
             daemon=True
         ).start()
     except Exception as e:
-        print(f'Failed to start worker thread for {queue.dequeue().email} | {e}')
-        error_mail.send(queue.dequeue().email, mail) # error mail incase main process fails
+        print(f'\n--Failed to start worker thread for {queue.dequeue().email} | {e}--')
+        traceback.print_exc() # print traceback for debugging
+        error_mail.send(queue.dequeue().email) # error mail incase main process fails
 
         WORKING = False
     return 

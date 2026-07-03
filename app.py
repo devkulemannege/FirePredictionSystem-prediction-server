@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
-from flask_mail import Mail
 from flask_limiter import Limiter
+import resend
 import dotenv
 import os
 
@@ -14,18 +14,10 @@ API_USR = os.getenv('API_USR')
 API_PSW = os.getenv('API_PSW')
 EMAIL_USR = os.getenv('EMAIL_USR')
 EMAIL_PSW = os.getenv('EMAIL_PSW')
+RESEND_KEY = os.getenv('RESEND_KEY')
 
 app = Flask(__name__)
-
-# configuration of mail
-app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = EMAIL_USR
-app.config['MAIL_PASSWORD'] = EMAIL_PSW
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_DEFAULT_SENDER'] = EMAIL_USR
-mail = Mail(app)
+resend.api_key = RESEND_KEY
 
 queue = request_queue() # create queue object 
 
@@ -56,7 +48,7 @@ def transfer():
             # enqueue request 
             queue.enqueue(payload['taskId'], payload['token'], payload['email'])
             print(f'{payload['email']} | request added to queue')
-            worker.start_worker(queue, mail, app) # send queue ref to worker function
+            worker.start_worker(queue, app) # send queue ref to worker function
 
             return jsonify({'status':'ok'}), 200
         else:

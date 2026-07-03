@@ -1,13 +1,19 @@
-from flask_mail import Message
 from flask import render_template
 from datetime import date
+import traceback
 import pandas as pd
+import dotenv
+import resend
 import pickle
 import os
 
 from . import error_mail
 
-def start(usrEmail, mail):
+# load resend-from-address from env
+dotenv.load_dotenv()
+RESEND_FROM_ADDRESS=os.getenv('RESEND_FROM_ADDRESS')
+
+def start(usrEmail):
     ''' start data analysis and extraction of the point request and generate prediction.
     finally, send the generated prediction to the user through email'''
 
@@ -50,8 +56,9 @@ def start(usrEmail, mail):
             }
         )
     except Exception as e:
-        print(f'An Error occurred while reading csv files for {usrEmail} | {e}')
-        error_mail.send(usrEmail, mail) # error mail incase main process fails
+        print(f'\n--An Error occurred while reading csv files for {usrEmail} | {e}--')
+        traceback.print_exc() # print traceback for debugging
+        error_mail.send(usrEmail) # error mail incase main process fails
 
         return
     
@@ -60,8 +67,9 @@ def start(usrEmail, mail):
         model = pickle.load(open('model.pkl', 'rb'))
         rawPrediction = model.predict(promptSample)
     except Exception as e:
-        print(f'Failed to produce prediction for {usrEmail} | {e}')
-        error_mail.send(usrEmail, mail) # error mail incase main process fails
+        print(f'\n--Failed to produce prediction for {usrEmail} | {e}--')
+        traceback.print_exc() # print traceback for debugging
+        error_mail.send(usrEmail) # error mail incase main process fails
 
         return
 
@@ -74,23 +82,20 @@ def start(usrEmail, mail):
         if rawPrediction[0] == 1: htmlPath = 'mailYes.html' # if prediction is 1
         else: htmlPath = 'emailNo.html' # otherwise, 2
 
-        msg = Message(
-            subject = f'Fire Prediction Results for {usrEmail} on {date.today()}',
-            recipients = [usrEmail]
-        )
+        htmlContent = render_template(htmlPath, date=date.today(), longitude=lon, latitude=lat)
 
-        # use html for email and provide variables for html 
-        msg.html = render_template( 
-            htmlPath,
-            date=date.today(),
-            longitude=lon,
-            latitude=lat
-        )
+        params: resend.Emails.SendParams = {
+            "from": f"Forest Fire Prediction System <{RESEND_FROM_ADDRESS}>",
+            "to": [usrEmail],
+            "subject": f'Fire Prediction Results for {usrEmail} on {date.today()}',
+            "html": htmlContent,
+        }
 
+        resend.Emails.send(params)
 
-        mail.send(msg) # send
     except Exception as e:
-        print(f'ERROR: Unable to send mail for {usrEmail}: {e}') 
-        error_mail.send(usrEmail, mail) # error mail incase main process fails
+        print(f'\n--ERROR: Unable to send mail for {usrEmail}: {e}--') 
+        traceback.print_exc() # print traceback for debugging
+        error_mail.send(usrEmail) # error mail incase main process fails
     
     return 

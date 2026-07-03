@@ -28,8 +28,8 @@ def retrieve_data(queue, app):
                 # check status of point request with 1 minute interval
                 starttime = time.time()
                 while r.get('{}task/{}'.format(api, payload.taskId), headers=head).json()['status'] != 'done':
-                    print(f'point request completion status for {payload.email} | {r.get('{}task/{}'.format(api, payload.taskId), headers=head).json()['status']}')
-                    time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+                    print(f'AppEEARS request status -> {payload.email} | {r.get('{}task/{}'.format(api, payload.taskId), headers=head).json()['status']}')
+                    time.sleep(300.0 - ((time.time() - starttime) % 300.0))
 
                 # retrieve file from AppEEARS
                 if os.path.exists(destDir): 
@@ -70,6 +70,7 @@ def retrieve_data(queue, app):
 
             # start prediction and mail process
             prediction_worker.start(payload.email) 
+            print(f'process finished for {payload.email}')
 
             if os.path.exists(destDir): shutil.rmtree(destDir) # remove directory after process 
     

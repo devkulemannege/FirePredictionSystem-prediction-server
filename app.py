@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request
 from flask_limiter import Limiter
-import resend
 import dotenv
 import os
 
@@ -12,13 +11,8 @@ dotenv.load_dotenv()
 
 API_USR = os.getenv('API_USR')
 API_PSW = os.getenv('API_PSW')
-EMAIL_USR = os.getenv('EMAIL_USR')
-EMAIL_PSW = os.getenv('EMAIL_PSW')
-RESEND_KEY = os.getenv('RESEND_KEY')
 
 app = Flask(__name__)
-resend.api_key = RESEND_KEY
-
 queue = request_queue() # create queue object 
 
 def get_email():

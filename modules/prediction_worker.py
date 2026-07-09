@@ -1,9 +1,9 @@
 from flask import render_template
 from datetime import date
-import traceback
 import pandas as pd
+import requests as r
+import traceback
 import dotenv
-import resend
 import pickle
 import os
 
@@ -11,7 +11,8 @@ from . import error_mail
 
 # load resend-from-address from env
 dotenv.load_dotenv()
-RESEND_FROM_ADDRESS=os.getenv('RESEND_FROM_ADDRESS')
+SMTP_KEY=os.getenv('SMTP_KEY')
+SMTP_URL=os.getenv('SMTP_URL')
 
 def start(usrEmail):
     ''' start data analysis and extraction of the point request and generate prediction.
@@ -82,17 +83,13 @@ def start(usrEmail):
         if rawPrediction[0] == 1: htmlPath = 'mailYes.html' # if prediction is 1
         else: htmlPath = 'emailNo.html' # otherwise, 2
 
-        htmlContent = render_template(htmlPath, date=date.today(), longitude=lon, latitude=lat)
-
-        params: resend.Emails.SendParams = {
-            "from": f"Forest Fire Prediction System <{RESEND_FROM_ADDRESS}>",
-            "to": [usrEmail],
-            "subject": f'Fire Prediction Results for {usrEmail} on {date.today()}',
-            "html": htmlContent,
+        payload = {
+            'email': usrEmail,
+            'subject': f'Fire Prediction Results for {usrEmail} on {date.today()}',
+            'htmlContent': render_template(htmlPath, date=date.today(), longitude=lon, latitude=lat)
         }
 
-        resend.Emails.send(params)
-
+        r.post(SMTP_URL, headers={"Content-Type": "application/json"}, json=payload, auth=('.',SMTP_KEY))
     except Exception as e:
         print(f'\n--ERROR: Unable to send mail for {usrEmail}: {e}--') 
         traceback.print_exc() # print traceback for debugging

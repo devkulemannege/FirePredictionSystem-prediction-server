@@ -19,7 +19,8 @@ def send(usrEmail):
             'htmlContent': render_template('fail.html')
         }
 
-        r.post(SMTP_URL, headers={"Content-Type": "application/json"}, json=payload, auth=('.',SMTP_KEY))
+        reply = r.post(SMTP_URL, headers={"Content-Type": "application/json"}, json=payload, auth=('.',SMTP_KEY))
+        if reply.status_code != 200: print(f"Email failed for {usrEmail} | {reply.status_code}: {reply.text}")
     except Exception as e:
         print(f'\n--ERROR: Unable to send FAILURE MAIL for {usrEmail}: {e}--') 
         traceback.print_exc() # print traceback for debugging

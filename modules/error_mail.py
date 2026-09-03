@@ -5,7 +5,6 @@ import dotenv
 import traceback
 import os
 
-# load resend-from-address from env
 dotenv.load_dotenv()
 SMTP_KEY=os.getenv('SMTP_KEY')
 SMTP_URL=os.getenv('SMTP_URL')

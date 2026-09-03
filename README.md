@@ -1,4 +1,7 @@
-# FirePredictionSystem Prediction Server
+<h1 align="left">
+  FirePredictionSystem Prediction Server
+  <img src="assets\mdi_wall-fire.png" width="50" align="right" />
+</h1>
 
 A Flask-based backend service that accepts fire-risk prediction requests from a [seperate interactive UI](https://github.com/devkulemannege/FirePredictionSystem-interactive-ui), retrieves Earth observation data from NASA AppEEARS, runs a trained machine learning model, and sends the prediction result to the user by email.
 
